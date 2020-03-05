@@ -1,6 +1,8 @@
 #include <UTouch.h>
 #include <UTouchCD.h>
 #include <UTFT.h>
+#include <SPI.h>
+#include <SD.h>
 
 UTFT    myGLCD(SSD1289,38,39,40,41);
 UTouch  myTouch( 6, 5, 4, 3, 2);
@@ -28,6 +30,15 @@ String names[] = {
 };
 
 void setup() {
+  Serial.begin(9600);
+  while (!Serial) {}
+  Serial.print("Initializing SD card...");
+  if (!SD.begin(53)) {
+    Serial.println("initialization failed!");
+    while (1);
+  }
+  Serial.println("initialization done.");
+  
   myGLCD.InitLCD();
   myGLCD.clrScr();
   myTouch.InitTouch();
@@ -92,5 +103,16 @@ void draw(int selected_x, int selected_y){
       int fontheight = myGLCD.getFontYsize();
       myGLCD.print(names[port-1], x*w+3, y*h+(h-fontheight-3));      
     }
+  }
+
+  File file = SD.open("01.ico", FILE_READ);
+  if (file) {
+    while (file.available()) {
+      Serial.write(file.read());
+    }
+    // close the file:
+    file.close();
+  } else {
+    Serial.println("error opening 01.ico");
   }
 }
